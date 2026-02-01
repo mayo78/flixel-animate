@@ -1,5 +1,7 @@
 package animate.internal.elements;
 
+import flixel.FlxG;
+import animate.internal.elements.SymbolInstance;
 import animate.FlxAnimateFrames.FilterQuality;
 import animate.FlxAnimateJson;
 import animate.internal.elements.AtlasInstance;
@@ -35,15 +37,19 @@ class MovieClipInstance extends SymbolInstance
 	{
 		super(data, parent, frame);
 		this.elementType = MOVIECLIP;
+		loopType = LoopType.LOOP;
 
 		// Add settings from parent frames
 		var _cacheOnLoad:Bool = false;
 		@:privateAccess {
-			if (parent != null && parent._settings != null)
+			if (parent != null)
 			{
-				swfMode = parent._settings.swfMode ?? false;
-				_cacheOnLoad = parent._settings.cacheOnLoad ?? false;
-				_filterQuality = parent._settings.filterQuality ?? FilterQuality.MEDIUM;
+				swfMode = parent.swfMode ?? false;
+				if (parent._settings != null)
+				{
+					_cacheOnLoad = parent._settings.cacheOnLoad ?? false;
+					_filterQuality = parent._settings.filterQuality ?? FilterQuality.MEDIUM;
+				}
 			}
 		}
 
@@ -219,12 +225,21 @@ class MovieClipInstance extends SymbolInstance
 
 	override function getFrameIndex(index:Int, frameIndex:Int = 0):Int
 	{
-		return swfMode ? super.getFrameIndex(index, frameIndex) : 0;
+		return swfMode ? super.getFrameIndex(getMovieClipIndex(), 0) : 0;
 	}
 
 	override function isSimpleSymbol():Bool
 	{
 		return swfMode ? super.isSimpleSymbol() : true;
+	}
+
+	/**
+	 * Get the frame index based on game time
+	 * @return Int
+	 */
+	inline function getMovieClipIndex():Int
+	{
+		return Math.floor((FlxG.game.ticks / 1000) * libraryItem.timeline.parent.frameRate);
 	}
 }
 
